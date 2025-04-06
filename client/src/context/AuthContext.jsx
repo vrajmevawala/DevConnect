@@ -1,33 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
-
-// Mock data for development
-const mockUsers = [
-  {
-    id: 1,
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    techStack: ['React', 'Node.js', 'MongoDB'],
-    githubUrl: 'https://github.com/janesmith',
-    role: 'Full-Stack Developer',
-    password: 'password123',
-  },
-  {
-    id: 2,
-    name: 'John Doe',
-    email: 'john@example.com',
-    techStack: ['Vue', 'Python', 'PostgreSQL'],
-    githubUrl: 'https://github.com/johndoe',
-    role: 'Backend Developer',
-    password: 'password123',
-  },
-];
+const API_BASE_URL = 'http://localhost:5000/api/auth'; // Update if your backend URL changes
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  // Check if user is logged in on initial load
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -43,43 +21,51 @@ export const AuthProvider = ({ children }) => {
   const isAuthenticated = Boolean(user);
 
   const login = async (email, password) => {
-    const foundUser = mockUsers.find(
-      (u) => u.email === email && u.password === password
-    );
+    try {
+      const res = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!foundUser) {
-      throw new Error('Invalid email or password');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Login failed');
+
+      setUser(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token); // Store token if needed
+    } catch (error) {
+      throw error;
     }
-
-    const { password: _, ...userWithoutPassword } = foundUser;
-    setUser(userWithoutPassword);
-    localStorage.setItem('user', JSON.stringify(userWithoutPassword));
   };
 
   const signup = async (userData) => {
-    if (mockUsers.some((u) => u.email === userData.email)) {
-      throw new Error('Email already exists');
+    try {
+      const res = await fetch(`${API_BASE_URL}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Signup failed');
+
+      setUser(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+    } catch (error) {
+      throw error;
     }
-
-    const newUser = {
-      ...userData,
-      id: mockUsers.length + 1,
-    };
-
-    const { password: _, ...userWithoutPassword } = newUser;
-    setUser(userWithoutPassword);
-    localStorage.setItem('user', JSON.stringify(userWithoutPassword));
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   const addSkill = (skill) => {
-    if (!user) return;
-
-    if (user.techStack.includes(skill)) return;
+    if (!user || user.techStack.includes(skill)) return;
 
     const updatedUser = {
       ...user,

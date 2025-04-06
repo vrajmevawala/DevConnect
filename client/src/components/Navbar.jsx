@@ -32,12 +32,11 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
               <span className="text-2xl font-bold text-brand-600">DevConnect</span>
-              <span className="ml-1 text-xs bg-brand-100 text-brand-600 px-1 rounded">Lite</span>
             </Link>
           </div>
 
           {/* Desktop menu */}
-          <div className="hidden sm:flex sm:items-center">
+          <div className="hidden sm:flex sm:items-center gap-2">
             {isAuthenticated ? (
               <>
                 <Link 

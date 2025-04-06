@@ -1,49 +1,40 @@
-import { Github } from 'lucide-react';
+// components/ProjectCard.js
+import { X } from 'lucide-react';
 
-const ProjectCard = ({ 
-  id, 
-  title, 
-  description, 
-  techStack, 
-  githubUrl,
-  onDelete
-}) => {
+const ProjectCard = ({ title, description, techStack, githubUrl, onRemove }) => {
   return (
-    <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-100">
-      <div className="flex justify-between items-start">
-        <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-        {onDelete && (
-          <button 
-            onClick={() => onDelete(id)}
-            className="text-red-400 hover:text-red-600 text-sm"
-          >
-            Remove
-          </button>
-        )}
-      </div>
-      
-      <p className="text-gray-600 text-sm mt-2 line-clamp-2">{description}</p>
-      
-      <div className="mt-4">
-        <p className="text-xs text-gray-500 mb-1">Tech Stack</p>
-        <div className="flex flex-wrap">
-          {techStack.map((tech) => (
-            <span key={tech} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full mr-2 mb-2">
-              {tech}
-            </span>
-          ))}
-        </div>
-      </div>
-      
-      <a
-        href={githubUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-4 inline-flex items-center text-sm text-brand-600 hover:text-brand-700"
+    <div className="relative bg-white p-4 rounded-xl shadow hover:shadow-md transition">
+      <button
+        onClick={onRemove}
+        aria-label="Remove project"
+        className="absolute top-2 right-2 flex items-center gap-1 text-red-500 hover:text-red-700 text-sm"
       >
-        <Github size={16} className="mr-1" />
-        View on GitHub
-      </a>
+        <X size={14}/>Remove
+      </button>
+
+      <h3 className="text-lg font-semibold">{title}</h3>
+      <p className="text-gray-600 text-sm mb-2">{description}</p>
+      <div className="flex flex-wrap gap-2 mb-2">
+      {techStack.map((tech) => (
+          <span
+            key={tech.toLowerCase()}
+            className="bg-gray-100 text-gray-700 px-2 py-0.5 text-xs rounded-full"
+          >
+            {tech}
+          </span>
+      ))}
+
+      </div>
+      <a
+  href={githubUrl}
+  target="_blank"
+  rel="noopener noreferrer"
+  title="Go to GitHub Repository"
+  className="text-brand-600 text-sm hover:underline"
+>
+  View on GitHub
+</a>
+
     </div>
   );
 };

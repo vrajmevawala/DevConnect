@@ -6,58 +6,6 @@ import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { toast } from '@/hooks/use-toast';
 
-// Mock developer data
-const mockDevelopers = [
-  {
-    id: 1,
-    name: 'Jane Smith',
-    role: 'Full-Stack Developer',
-    techStack: ['React', 'Node.js', 'MongoDB'],
-    githubUrl: 'https://github.com/janesmith',
-    about: 'Passionate full-stack developer with 5 years of experience building web applications.'
-  },
-  {
-    id: 2,
-    name: 'John Doe',
-    role: 'Backend Developer',
-    techStack: ['Vue', 'Python', 'PostgreSQL'],
-    githubUrl: 'https://github.com/johndoe',
-    about: 'Backend developer focused on building scalable APIs and database solutions.'
-  },
-  {
-    id: 3,
-    name: 'Alex Johnson',
-    role: 'Frontend Developer',
-    techStack: ['React', 'TypeScript', 'Tailwind'],
-    githubUrl: 'https://github.com/alexj',
-    about: 'UI/UX enthusiast who loves creating beautiful user interfaces using modern frameworks.'
-  },
-  {
-    id: 4,
-    name: 'Sarah Williams',
-    role: 'DevOps Engineer',
-    techStack: ['Docker', 'Kubernetes', 'AWS'],
-    githubUrl: 'https://github.com/sarahw',
-    about: 'Cloud infrastructure expert specializing in containerization and CI/CD pipelines.'
-  },
-  {
-    id: 5,
-    name: 'Mike Chen',
-    role: 'Mobile Developer',
-    techStack: ['React Native', 'Flutter', 'Firebase'],
-    githubUrl: 'https://github.com/mikechen',
-    about: 'Mobile app developer with a passion for creating seamless cross-platform experiences.'
-  },
-  {
-    id: 6,
-    name: 'Emma Rodriguez',
-    role: 'UI/UX Designer',
-    techStack: ['Figma', 'Adobe XD', 'HTML/CSS'],
-    githubUrl: 'https://github.com/emmar',
-    about: 'Designer who bridges the gap between beautiful interfaces and functional user experiences.'
-  }
-];
-
 const ProfilePage = () => {
   const { id: userId } = useParams();
   const [developer, setDeveloper] = useState(null);
@@ -68,24 +16,43 @@ const ProfilePage = () => {
   const [isCurrentUser, setIsCurrentUser] = useState(false);
 
   useEffect(() => {
-    if (!userId) return;
+  let isMounted = true;
 
-    const developerData = mockDevelopers.find(dev => dev.id === parseInt(userId));
+  const fetchDeveloper = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/users/${userId}`);
+      if (!res.ok) throw new Error('User not found');
+      const data = await res.json();
 
-    if (developerData) {
-      setDeveloper(developerData);
-      setIsCurrentUser(user?.id === parseInt(userId));
-    } else {
-      toast({
-        title: "Developer not found",
-        description: "Could not find the requested developer profile",
-        variant: "destructive",
-      });
-      navigate('/developers');
+      if (isMounted) {
+        setDeveloper(data);
+        setIsCurrentUser(user?.id === parseInt(userId));
+      }
+    } catch (err) {
+      if (isMounted) {
+        toast({
+          title: "Developer not found",
+          description: "Could not find the requested developer profile.",
+          variant: "destructive",
+        });
+
+        setTimeout(() => {
+          navigate('/developers');
+        }, 2000); // delay so toast is visible
+      }
+    } finally {
+      if (isMounted) setLoading(false);
     }
+  };
 
-    setLoading(false);
-  }, [userId, user, navigate]);
+  if (userId) fetchDeveloper();
+
+  return () => {
+    isMounted = false;
+  };
+}, [userId, user, navigate]);
+
 
   const handleMessageClick = () => {
     if (developer) {
@@ -119,12 +86,19 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-
       <main className="flex-grow bg-gray-50 py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
-            
-            {/* Profile header */}
+
+            {/* Back Button */}
+            <button
+              onClick={() => navigate(-1)}
+              className="text-sm text-brand-600 hover:underline mb-4"
+            >
+              ← Back
+            </button>
+
+            {/* Profile Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
               <div className="flex items-center mb-4 md:mb-0">
                 <div className="h-20 w-20 bg-brand-100 rounded-full flex items-center justify-center text-brand-600 text-2xl font-bold mr-6">
@@ -160,17 +134,17 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* About section */}
+            {/* About Section */}
             <div className="mb-8">
               <h2 className="text-xl font-semibold text-gray-800 mb-3">About</h2>
               <p className="text-gray-600">{developer.about}</p>
             </div>
 
-            {/* Tech Stack section */}
+            {/* Tech Stack */}
             <div>
               <h2 className="text-xl font-semibold text-gray-800 mb-3">Tech Stack</h2>
               <div className="flex flex-wrap gap-2">
-                {developer.techStack.map(tech => (
+                {developer.techStack?.map(tech => (
                   <span
                     key={tech}
                     className="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm"
